@@ -29,22 +29,23 @@ data_types: BOOLEAN
           | ANYTYPE
           | VOID;
 
-caller: THIS DOT var | className STATIC_CALLER var | anytype;
-
-conditions: caller BOOL_OPS caller;
+if: IF evaluator return DELIMITATOR
+  | IF evaluator return return DELIMITATOR
+  | IF evaluator return DELIMITATOR ELSE return DELIMITATOR;
 
 evaluator: OPENPAR conditions CLOSEPAR
          | OPENPAR conditions BOOL_OPS OPENPAR conditions CLOSEPAR CLOSEPAR
          | conditions BOOL_OPS conditions
          | conditions;
 
-return: RETURN anytype;
+conditions: caller BOOL_OPS caller
+          | caller BOOL_OPS caller BOOL_OPS caller BOOL_OPS caller;
+
+caller: THIS DOT var | className STATIC_CALLER var | anytype;
+
+return: RETURN anytype | RETURN callFunc;
 
 className: STR;
-
-if: IF evaluator return DELIMITATOR
-  | IF evaluator return return DELIMITATOR
-  | IF evaluator return DELIMITATOR ELSE return DELIMITATOR;
 
 forSelect: SELALL | STR | var className INDEX HINT className ;
 
@@ -53,7 +54,9 @@ select: SELECT forSelect FROM className WHERE evaluator | SELECT forSelect WHERE
 coma: ', ';
 
 callFunc: var DOT var
+        | THIS DOT var
         | callFunc OPENPAR CLOSEPAR
+        | var OPENPAR callFunc CLOSEPAR
         | var STATIC_CALLER  var OPENPAR var OPENPAR (string coma)* (string coma)* var (coma)* callFunc SELALL arithmeticOperation CLOSEPAR
         | var OPENPAR (string coma)*  callFunc CLOSEPAR
         | var callFunc
@@ -66,6 +69,11 @@ whileins: callFunc  DELIMITATOR whileins
 
 while: WHILE (select '{ ')* (whileins ' }')*;
 
+funcHeader: data_types var OPENPAR className var CLOSEPAR
+          | STATIC_ACCESS funcHeader;
+
+function: (funcHeader '{ ')* if (' }')*;
+
 /*
     Lex
 */
@@ -77,19 +85,13 @@ HINT: 'hint';
 INDEX: 'index';
 SELECT: 'select';
 WHILE: 'while';
-STRINGFORMAT : 'strFmt';
-IF: 'if';
-ELSE: 'else';
+STATIC_ACCESS: 'static';
 RETURN: 'return';
+ELSE: 'else';
+IF: 'if';
 CLOSEPAR: ')';
 OPENPAR: '(';
-BOOL_OPS: '&&'
-        | '||'
-        | '=='
-        | '<'
-        | '>'
-        | '<='
-        | '>=';
+
 STATIC_CALLER: '::';
 DOT: '.';
 THIS: 'this';
@@ -112,6 +114,13 @@ INTEGER: 'int';
 STRING: 'str';
 BOOLEAN : 'boolean';
 BOOL: 'true' | 'false';
+BOOL_OPS: ' && '
+        | '||'
+        | '=='
+        | '<'
+        | '>'
+        | '<='
+        | '>=';
 STR: [[a-zA-Z]+ ;
 NUMBER: [0-9]+ ;
 WHITESPACE : [ \t\r\n]+ -> skip;

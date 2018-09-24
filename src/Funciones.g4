@@ -1,7 +1,0 @@
-grammar Funciones;
-
-//parser
-
-
-//lex
-
