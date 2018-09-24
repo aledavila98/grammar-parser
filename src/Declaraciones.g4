@@ -16,8 +16,13 @@ arithmeticOperation : values OPERATOR values arithmeticOperation
 
 toEqual: anytype | var | arithmeticOperation;
 
-declare: data_types var EQUALS toEqual DELIMITATOR
-        | data_types var DELIMITATOR;
+declare: data_types var EQUALS toEqual DELIMITATOR declare
+        | data_types var EQUALS toEqual DELIMITATOR
+        | data_types var DELIMITATOR declare
+        | data_types var DELIMITATOR
+        | data_types var EQUALS callFunc DELIMITATOR declare
+        | data_types var EQUALS callFunc DELIMITATOR
+        ;
 
 data_types: BOOLEAN
           | STRING
@@ -72,7 +77,9 @@ while: WHILE (select '{ ')* (whileins ' }')*;
 funcHeader: data_types var OPENPAR className var CLOSEPAR
           | STATIC_ACCESS funcHeader;
 
-function: (funcHeader '{ ')* if (' }')*;
+function: (funcHeader '{ ')* if (' }')*
+        | (funcHeader '{ ')* declare while callFunc (' }')*
+        | (funcHeader '{ ')* declare while (' }')*;
 
 /*
     Lex
